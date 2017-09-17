@@ -1,0 +1,71 @@
+UPC,DM identifier,DM description,category,sub category,productname,brand,List Price,,September 17 selection,,Store 1(food),Stoe 2 (drugs),Store 3 (liquor)
+659651050492,58,laubade,alcohol,,Laubade Liquor,,49.95,,1,,,,1
+7624882000036,59,napoleon,alcohol,Cognak,Napoleon Cognak,,19.90,,1,,,,1
+088110931025,68,grand_mariner,alcohol,Cognak,Gran Mariner Cognak,,50.00,,1,,,,1
+049022506022,1014,alkaline_d2,battery,,Alkaline D2,,2.99,,,,,1,
+049022533592,1015,alkaline_aaa,battery,,Alkaline AAA,,4.99,,,,,1,
+041333424019,1016,duracell_aaa,battery,,Duracell AAA,,3.99,,,,,1,
+041333662176,1017,duracell_aa,battery,,Duracell AA,Duracell,0.99,,,,,1,
+08248886,69,becks,beer,foreign beer,Becks Beer ,,2.00,,1,,,0,1
+07289149,70,heineken,beer,foreign beer,heineken Beer,,3.00,,1,,,1,1
+075140005024,1018,crystal_geyser,beverage,,Geyser Water,,0.90,,1,,,1,
+02248507,34,orbit_red,chewing gum,,Orbit Red,Orbit,1.45,,,,1,1,1
+012546308052,35,dentyne_pure_green,chewing gum,,Dentyne Pure Green,,1.65,,,,0,1,0
+012546676090,36,trident_white,chewing gum,,Trident White,Trident,1.85,,,,0,1,0
+02266600,37,wrigleys_doublemint,chewing gum,,Wrigleys Doublemint,Wrigleys,2.05,,,,1,1,0
+02289902,38,extra_spearmint,chewing gum,,Extra Spearmint,,2.25,,,,0,0,0
+012546308014,39,dentyne_pure_blue,chewing gum,,Dentyne Pure Blue,,2.45,,,,0,1,0
+02248303,40,orbit_sweetmint,chewing gum,,Orbit Sweetmint,Orbit,2.65,,,,0,0,0
+022000013316,41,eclipse,chewing gum,,Eclipse Chewing Gum,,2.85,,,,0,1,0
+022000159359,42,altoids_red,chewing gum,,Altoids Red,Altoids,3.05,,1,,0,1,0
+022000159311,43,altoids_green,chewing gum,,Altoids Geen,Altoids,3.25,,,,1,1,1
+022000159342,44,altoids_blue,chewing gum,,Altoids Blue,Altoids,3.45,,,,1,1,1
+02248604,1009,orbit_blue,chewing gum,,Orbit Blue,Orbit,3.65,,,,1,1,1
+02248400,1010,orbit_green,chewing gum,,Orbit Green,Orbit,3.85,,,,0,1,0
+012546001939,1011,trident_blue,chewing gum,,Trident Blue,Trident,4.05,,,,1,1,0
+012546615952,1012,trident_greeen,chewing gum,,Trident Green,Trident,4.25,,,,1,1,1
+012546615563,1013,trident_pink,chewing gum,,Trident Pink,Trident,4.45,,1,,1,1,1
+081057013502,52,dill_weed,packaged food,herbs,Dry Dill,,4.99,,1,,1,,
+099482419189,53,organic_basil,packaged food,herbs,Organic Basil,,4.99,,1,,1,,
+079400507402,26,dove_sensitive,hygiene,deodorant,Dove Sensitive,Dove,9.80,,1,,,1,
+079400013422,27,degree_men,hygiene,deodorant,Degree Men deodorant,,9.40,,1,,,1,
+022200941532,28,speed_stick_value2,hygiene,deodorant,Speed Stick Value Pack (2x),,9.00,,1,,,1,
+079400066725,29,dove_men_care_green,hygiene,deodorant,Dove Men Care Green,Dove,8.60,,1,,,1,
+047400097582,30,gilette,hygiene,deodorant,Gilette Power Beads Deodorant,Gilette,8.20,,1,,,1,
+047400097872,31,gilette_power_beads,hygiene,deodorant,gilette Power Rush Deodorant,Gilette,7.80,,1,,,1,
+022200962148,32,speed_stick_gear,hygiene,deodorant,Speed Stick Gear,Speed Stick,7.40,,1,,,1,
+079400066718,33,dove_men_care_blue,hygiene,deodorant,Dove Men Care Blue Deodorant,Dove,7.00,,1,,,1,
+047400185593,1001,gilette_sport,hygiene,razors,Gilette Sport deodorant,Gilette,6.60,,,,,1,
+022200930093,1002,speed_stick_fresh,hygiene,deodorant,Speed Stick Fresh,,6.20,,1,,,1,
+079400507303,1003,dove_original,hygiene,deodorant,Dove Original,,5.80,,1,,,1,
+079400507204,1004,dove_powder,hygiene,deodorant,Dove Powder,,5.40,,1,,,1,
+022200950367,1005,speed_stick_irish,hygiene,deodorant,Speed Stick Fresh,Speed Stick,5.00,,1,,,1,
+022200930086,1006,speed_stick_ocean,hygiene,deodorant,Speed Stick Ocean,Speed Stick,4.60,,1,,,0,
+022200004909,1007,speed_stick_power,hygiene,deodorant,Speed Stick Power,,4.20,,1,,,1,
+079400528063,1008,dove_dry_spray,hygiene,,Dove Dry Spray,,3.80,,1,,,1,
+072310000391,1020,bigelow_peppermint,packaged food,,Bigelow Peppermint Tea,Bigelow,5.90,,1,,1,,
+052100029962,45,pureground_blackpepper,packaged food,,Pureground Black Pepper,,9.60,,1,,1,,
+761720071045,46,argo_cornstarch,packaged food,,Argo Cornstarch,,3.40,,1,,1,,
+073469304255,47,genmai_cha,packaged food,,Genmai Green Tea,,8.90,,,,1,,
+076808507386,48,banilla_fettuccine,packaged food,,Barilla Fettuccine,Barilla,14.40,,1,,1,,
+073469304729,49,yama_greentea,packaged food,,Yama Green Tea,,19.90,,1,,0,,
+041953014508,50,lavazza_espresso,packaged food,,Lavazza Expresso,Lavazza,25.40,,1,,1,,
+071757030015,54,hondashi,packaged food,,Hondashi Canned Soup,,30.90,,1,,1,,
+070796700514,55,cento_tuna,packaged food,,Cento Canned Tuna,,36.40,,1,,1,,
+070177051143,1021,twinings_purple,packaged food,tea,Twinings Darjeeling TEa,Twinings,41.90,,1,,1,,
+070177267582,1022,twinings_chai,packaged food,tea,Twinings Chai Tea,Twinings,47.40,,1,,1,,
+070734000034,1023,sleepy_time,packaged food,tea,Sleeptime Tea,,52.90,,1,,1,,
+027000390078,1024,hunts,packaged food,,Hunts canned soup,,58.40,,1,,1,,
+041190042845,1025,tomato_sauce,packaged food,,Tomato Sauce,,63.90,,1,,1,,
+052159012052,51,stonyfield_milk,perishable food,,Milk,Stonyfield,69.40,,1,,1,,
+093966000283,1019,organic_valley,perishable food,,Organic Valley Cream,,74.90,,1,,1,,
+3370100000017,56,chateau,wine,red wine,Chateau Pey-Bonhomme,,9.95,,1,,,,1
+789764603039,57,drappier,wine,,Crappier Champagne,,19.95,,1,,,,1
+8012769415317,60,vezzo,wine,white wine,Vexxo White Wine,,29.95,,1,,,,1
+085000008430,61,pinot_grigio,wine,white wine,Pinot Grigio,,39.95,,1,,,,1
+015643249198,62,maillard,wine,red wine,Maillard Wine,,49.95,,1,,,,1
+015643235313,63,chaetau_camarsac,wine,,Chaetau Camarsac,,59.95,,1,,,,1
+015643235481,64,chotes_du_rhone,wine,red wine,Cotes du Rhone,,69.95,,1,,,,1
+015643005466,65,graves_de_vayres,wine,,Graves De Vayres,,79.95,,1,,,,1
+3332380212757,66,lespirit_de_sainte,wine,,Lesprit de Sainte,,189.95,,1,,,,1
+085000024706,67,fleur_de_mer,wine,,Fleur de Mer,,299.95,,1,,,,1
