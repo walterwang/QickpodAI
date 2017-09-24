@@ -206,110 +206,109 @@ my_head_pose_estimator.load_roll_variables(rollfile_path)
 count = 0
 x_axis_rotate = 0
 
-try:
-    from pylibfreenect2 import OpenCLPacketPipeline
-
-    pipeline = OpenCLPacketPipeline()
-except:
+if __name__ =='__main__':
     try:
-        from pylibfreenect2 import OpenGLPacketPipeline
+        from pylibfreenect2 import OpenCLPacketPipeline
 
-        pipeline = OpenGLPacketPipeline()
+        pipeline = OpenCLPacketPipeline()
     except:
-        from pylibfreenect2 import CpuPacketPipeline
+        try:
+            from pylibfreenect2 import OpenGLPacketPipeline
 
-        pipeline = CpuPacketPipeline()
-print("Packet pipeline:", type(pipeline).__name__)
+            pipeline = OpenGLPacketPipeline()
+        except:
+            from pylibfreenect2 import CpuPacketPipeline
 
-enable_rgb = True
-enable_depth = True
+            pipeline = CpuPacketPipeline()
+    print("Packet pipeline:", type(pipeline).__name__)
 
-fn = Freenect2()
-num_devices = fn.enumerateDevices()
-if num_devices == 0:
-    print("No device connected!")
-    sys.exit(1)
+    enable_rgb = True
+    enable_depth = True
 
-serial = fn.getDeviceSerialNumber(0)
-device = fn.openDevice(serial, pipeline=pipeline)
+    fn = Freenect2()
+    num_devices = fn.enumerateDevices()
+    if num_devices == 0:
+        print("No device connected!")
+        sys.exit(1)
 
-types = 0
-if enable_rgb:
-    types |= FrameType.Color
-if enable_depth:
-    types |= (FrameType.Ir | FrameType.Depth)
-listener = SyncMultiFrameListener(types)
+    serial = fn.getDeviceSerialNumber(0)
+    device = fn.openDevice(serial, pipeline=pipeline)
 
-# Register listeners
-device.setColorFrameListener(listener)
-device.setIrAndDepthFrameListener(listener)
-
-if enable_rgb and enable_depth:
-    device.start()
-else:
-    device.startStreams(rgb=enable_rgb, depth=enable_depth)
-
-# NOTE: must be called after device.start()
-if enable_depth:
-    registration = Registration(device.getIrCameraParams(),
-                                device.getColorCameraParams())
-
-undistorted = Frame(512, 424, 4)
-registered = Frame(512, 424, 4)
-color_depth_map = np.zeros((424, 512), np.int32).ravel()
-bigdepth = Frame(1920, 1082, 4)
-np.set_printoptions(threshold=np.inf)
-while True:
-    frames = listener.waitForNewFrame()
-
+    types = 0
     if enable_rgb:
-        color = frames["color"]
+        types |= FrameType.Color
     if enable_depth:
-        ir = frames["ir"]
-        depth = frames["depth"]
+        types |= (FrameType.Ir | FrameType.Depth)
+    listener = SyncMultiFrameListener(types)
+
+    # Register listeners
+    device.setColorFrameListener(listener)
+    device.setIrAndDepthFrameListener(listener)
 
     if enable_rgb and enable_depth:
-        registration.apply(color, depth, undistorted, registered, bigdepth=bigdepth,
-                       color_depth_map=color_depth_map)
-    # elif enable_depth:
-    #     registration.undistortDepth(depth, undistorted)
-    # img = cv2.resize(registered.asarray(np.uint8)[:, :, 0:4], (512, 424))
+        device.start()
+    else:
+        device.startStreams(rgb=enable_rgb, depth=enable_depth)
 
-    #cv2.imshow("unrotated", img)
+    # NOTE: must be called after device.start()
+    if enable_depth:
+        registration = Registration(device.getIrCameraParams(),
+                                    device.getColorCameraParams())
 
-    bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920 / 3), int(1082 / 3))),3)
-    img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920 / 3), int(1080 / 3))),3)
+    undistorted = Frame(512, 424, 4)
+    registered = Frame(512, 424, 4)
+    color_depth_map = np.zeros((424, 512), np.int32).ravel()
+    bigdepth = Frame(1920, 1082, 4)
+    np.set_printoptions(threshold=np.inf)
+    while True:
+        frames = listener.waitForNewFrame()
 
-    #cv2.imshow("bigdepth", bigdepth_img)
+        if enable_rgb:
+            color = frames["color"]
+        if enable_depth:
+            ir = frames["ir"]
+            depth = frames["depth"]
+
+        if enable_rgb and enable_depth:
+            registration.apply(color, depth, undistorted, registered, bigdepth=bigdepth,
+                           color_depth_map=color_depth_map)
+        # elif enable_depth:
+        #     registration.undistortDepth(depth, undistorted)
+        # img = cv2.resize(registered.asarray(np.uint8)[:, :, 0:4], (512, 424))
+
+        #cv2.imshow("unrotated", img)
+
+        bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920 / 3), int(1082 / 3))),3)
+        img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920 / 3), int(1080 / 3))),3)
+
+        #cv2.imshow("bigdepth", bigdepth_img)
 
 
-    img = img.copy()
-    rclasses, rscores, rbboxes = process_image(img, select_threshold=min_select, nms_threshold=min_conf)
+        img = img.copy()
+        rclasses, rscores, rbboxes = process_image(img, select_threshold=min_select, nms_threshold=min_conf)
 
-    for bbox in rbboxes:
-        img.shape[0] ,
-    img, cropped_head_list = visualize_box(img, rclasses, rscores, rbboxes, bigdepth_img)
+        img, cropped_head_list = visualize_box(img, rclasses, rscores, rbboxes, bigdepth_img)
 
-    cv2.imshow("color_img", img)
+        cv2.imshow("color_img", img)
 
-    # if enable_depth:
-    # cv2.imshow("ir", ir.asarray() / 65535.)
-    # cv2.imshow("depth", depth.asarray() / 4500.)
-    # cv2.imshow("color_depth_map", color_depth_map.reshape(424, 512))
-    # print(depth.asarray().shape)
-    # cv2.imshow("undistorted", undistorted.asarray(np.float32) / 4500.)
-    # if enable_rgb:
-    # cv2.imshow("color", img)
-    # if enable_rgb and enable_depth:
-    # cv2.imshow("registered", registered.asarray(np.uint8))
+        # if enable_depth:
+        # cv2.imshow("ir", ir.asarray() / 65535.)
+        # cv2.imshow("depth", depth.asarray() / 4500.)
+        # cv2.imshow("color_depth_map", color_depth_map.reshape(424, 512))
+        # print(depth.asarray().shape)
+        # cv2.imshow("undistorted", undistorted.asarray(np.float32) / 4500.)
+        # if enable_rgb:
+        # cv2.imshow("color", img)
+        # if enable_rgb and enable_depth:
+        # cv2.imshow("registered", registered.asarray(np.uint8))
 
-    listener.release(frames)
+        listener.release(frames)
 
-    key = cv2.waitKey(delay=1)
-    if key == ord('q'):
-        break
+        key = cv2.waitKey(delay=1)
+        if key == ord('q'):
+            break
 
-device.stop()
-device.close()
+    device.stop()
+    device.close()
 
-sys.exit(0)
+    sys.exit(0)

@@ -127,9 +127,6 @@ def process_image(img, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 
     return rclasses, rscores, rbboxes
 
 
-
-
-
 def visualize_box(img, rclasses, rscores, rbboxes, depth_matrix):
     obj = []
     for ind, box in enumerate(rbboxes):

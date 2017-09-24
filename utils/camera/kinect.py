@@ -88,25 +88,25 @@ class KinectCamera(object):
         img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920 / 3), int(1080 / 3))),3)
 
         self.listener.release(self.frames)
-        return img
+        return img, bigdepth_img
 
-    # def __enter__(self):
-    #     return
-    #
-    # def __exit__(self, exc_type, exc_value, traceback):
-    #     self.device.stop()
-    #     self.device.close()
-
+    def __del__(self):
+        self.device.stop()
+        self.device.close()
 if __name__ == '__main__':
-
-    kinect_right=  KinectCamera(0)
-    kinect_left = KinectCamera(1)
+    fourcc = cv2.VideoWriter_fourcc(*'H264')
+    out = cv2.VideoWriter('example_recording_for_salil.avi', fourcc, 20.0, (int(1080/3), int(1920 / 3)))
+    kinect_right=  KinectCamera(1)
+    kinect_left = KinectCamera(0)
     while True:
-        cv2.imshow('left', kinect_left.get_frames())
-        cv2.imshow('right', kinect_right.get_frames())
+        out.write(np.rot90(kinect_right.get_frames()[0],2))
+        # cv2.imshow('left', kinect_left.get_frames()[0])
+        # cv2.imshow('right', np.rot90(kinect_right.get_frames()[0],2))
         key = cv2.waitKey(delay=1)
+
         if key == ord('q'):
             break
+    out.release()
     sys.exit(0)
 
 

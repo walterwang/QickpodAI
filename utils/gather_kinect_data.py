@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser(description='make videos')
 parser.add_argument('--c', type=float, help='minconfidence needed to display box', default=.25)
 parser.add_argument('--s', type=float, help='min select threshold needed to display box', default=.6)
 parser.add_argument('--a', type=int, help='minmum_area', default=1)
-parser.add_argument('--v', type=bool, help='make video', default=False)
+parser.add_argument('--v', type=bool, help='make video', default=True)
 args = parser.parse_args()
 min_conf = args.c
 min_select = args.s
@@ -41,7 +41,7 @@ if num_devices == 0:
     print("No device connected!")
     sys.exit(1)
 
-serial = fn.getDeviceSerialNumber(0)
+serial = fn.getDeviceSerialNumber(1)
 device = fn.openDevice(serial, pipeline=pipeline)
 
 listener = SyncMultiFrameListener(
@@ -90,7 +90,7 @@ while True:
     # visualization backend.
     #cv2.imshow("ir", ir.asarray() / 65535.)
     #cv2.imshow("depth", depth.asarray() / 4500.)
-    img = np.fliplr(np.rot90(cv2.resize(color.asarray()[:,:,0:3],(int(1920 / 2), int(1080 / 2))), 3))
+    img = np.fliplr(np.rot90(cv2.resize(color.asarray()[:,:,0:3],(int(1920 / 2), int(1080 / 2))), 1))
 
     cv2.imshow("color", img)
     #cv2.imshow("registered", registered.asarray(np.uint8))
