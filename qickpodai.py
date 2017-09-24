@@ -60,7 +60,6 @@ class Qickpod(object):
                 return self.t_empty2atdoor()
             if heads>0:
                 print('head found')
-                time.sleep(10)
                 return self.t_empty2occupied()
 
     def onenter_occupied(self):
