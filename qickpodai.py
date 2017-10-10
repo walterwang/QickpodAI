@@ -10,7 +10,7 @@ import pandas as pd
 from pylibfreenect2 import createConsoleLogger, setGlobalLogger
 from transitions.extensions import GraphMachine as Machine
 setGlobalLogger(None)
-from camera_manager.queue_manager import QueueManager
+#from camera_manager.queue_manager import QueueManager
 
 class Qickpod(object):
     states = ['s_occupied', 's_taken','s_returned', 's_empty', 's_atdoor']
@@ -29,21 +29,23 @@ class Qickpod(object):
     def __init__(self):
 
         # defining pod variables and camera
+        with open("ssd_path.txt") as f:
+            ssd_path = f.readlines()
         self.total_party = 0
         self.headcounter = 0
-        self.inventorylist = pd.read_csv('/home/salil/QickpodAI/datasheets/productlist.csv')
+        self.inventorylist = pd.read_csv(ssd_path[2].strip())
         self.upcname_dict = pd.Series(self.inventorylist.UPC.values, index=self.inventorylist.productname).to_dict()
         self.poditems = []
-        self.ssd_head = SSD('/home/salil/Documents/SSD-Tensorflow/checkpoints/model.ckpt', 21)
-        # self.ssd_object  = SSD('/home/salil/Documents/SSD-Tensorflow/checkpoints/objects/obj_model.ckpt', 21)
+        # self.ssd_head = SSD('/home/salil/Documents/SSD-Tensorflow/checkpoints/model.ckpt', 21)
+        self.ssd_object  = SSD(ssd_path[1].strip(), 21)
 
-        #self.left_kinect = KinectCamera(1)
-        #self.right_kinect = KinectCamera(0)
+        self.left_kinect = KinectCamera(1)
+        self.right_kinect = KinectCamera(0)
 
-        self.m = QueueManager.create_manager()
-        self.m.connect()
-        self.right_kinect = self.m.LatestFrame1()
-        self.left_kinect = self.m.LatestFrame0()
+        #self.m = QueueManager.create_manager()
+        #self.m.connect()
+        #self.right_kinect = self.m.LatestFrame1()
+        #self.left_kinect = self.m.LatestFrame0()
 
         #defining pod fsm:
         self.machine = Machine(model=self, states=Qickpod.states, transitions=Qickpod.transitions,

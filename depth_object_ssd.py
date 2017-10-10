@@ -4,17 +4,25 @@
 import numpy as np
 import tensorflow as tf
 import cv2
-
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import argparse
 import sys
-
+import os
+import math
+import random
+import imutils
+#from deepgaze.head_pose_estimation import CnnHeadPoseEstimator
 from pylibfreenect2 import Freenect2, SyncMultiFrameListener
 from pylibfreenect2 import FrameType, Registration, Frame
 
-sys.path.append('/home/salil/Documents/SSD-Tensorflow/')
+with open("ssd_path.txt") as f:
+    ssd_path=f.readlines()
+sys.path.append(ssd_path[0].strip())
+
 from nets import ssd_vgg_512, ssd_common, np_methods
 from preprocessing import ssd_vgg_preprocessing
-
+from notebooks import visualization
 
 label_dict = {'none': 0,
      'mk_brown_wrislet': 1,
@@ -40,7 +48,7 @@ slim = tf.contrib.slim
 
 parser = argparse.ArgumentParser(description='Get min Confident lvl to display.')
 parser.add_argument('--c', type=float, help='minconfidence needed to display box', default=.25)
-parser.add_argument('--s', type=float, help='min select threshold needed to display box', default=.6)
+parser.add_argument('--s', type=float, help='min select threshold needed to display box', default=.5)
 parser.add_argument('--a', type=int, help='minmum_area', default=1)
 args = parser.parse_args()
 min_conf = args.c
@@ -83,7 +91,8 @@ with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
 
 # Restore SSD model.
 
-ckpt_filename = '/home/salil/Documents/SSD-Tensorflow/checkpoints/objects/obj_model.ckpt'
+# ckpt_filename = '/home/walter/Documents/others_git/SSD-Tensorflow/checkpoints/handbags/obj_model.ckpt'
+ckpt_filename = ssd_path[1].strip()
 
 isess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
@@ -105,7 +114,7 @@ ssd_anchors = ssd_net.anchors(net_shape)
 # In[8]:
 
 # Main image processing routine.
-def process_image(img, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 300)):
+def process_image(img, select_threshold=0.5, nms_threshold=.45, net_shape=(512, 512)):
     # Run SSD network.
     rimg, rpredictions, rlocalisations, rbbox_img = isess.run([image_4d, predictions, localisations, bbox_img],
                                                               feed_dict={img_input: img})
@@ -133,30 +142,24 @@ def visualize_box(img, rclasses, rscores, rbboxes, depth_matrix):
             obj.append(img[topleft[1]:botright[1], topleft[0]:botright[0]])
             try:
                 depth_matrix[depth_matrix == np.inf] = np.nan
-                # depth = int(np.nanmean(depth_matrix[topleft[1]:botright[1], topleft[0]:botright[0]]))
-
-                # print(depth_matrix[int(4*(topleft[1]+botright[1])/10):int(6*(topleft[1]+botright[1])/10),
-                #                        int(4*(topleft[0]+botright[0])/10):int(6*(topleft[0]+botright[0])/10)])
 
                 depth = int(np.nanmean(depth_matrix[int(4*(topleft[1]+botright[1])/10):int(6*(topleft[1]+botright[1])/10),
                                        int(4*(topleft[0]+botright[0])/10):int(6*(topleft[0]+botright[0])/10)]))
             except ValueError:
 
                 depth = 'depth is NA'
-
-
             img = cv2.rectangle(img, topleft, botright, (0, 255, 0), 1)
 
             # print(rscores[ind])
-            img = cv2.putText(img, str(depth), (topleft[0], topleft[1]-20), cv2.FONT_HERSHEY_SIMPLEX, .5, (155, 255, 55), 1,
+            img = cv2.putText(img, str(depth), (topleft[0], topleft[1]-20), cv2.FONT_HERSHEY_SIMPLEX, .6, (155, 255, 55), 1,
                                cv2.LINE_AA)
 
 
             img = cv2.putText(img, object_labels[rclasses[ind]], topleft, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,
                               cv2.LINE_AA)
 
-            img = cv2.putText(img, str(rscores[ind]), (topleft[0], botright[1] + 10), cv2.FONT_HERSHEY_SIMPLEX, .7, (255, 255, 255), 1,
-                               cv2.LINE_AA)
+            img = cv2.putText(img, str(rscores[ind]), (topleft[0], botright[1] + 10), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1,
+                              cv2.LINE_AA)
 
     return img, obj
 
@@ -193,7 +196,7 @@ if num_devices == 0:
     print("No device connected!")
     sys.exit(1)
 
-serial = fn.getDeviceSerialNumber(1)
+serial = fn.getDeviceSerialNumber(0)
 device = fn.openDevice(serial, pipeline=pipeline)
 
 types = 0
@@ -222,6 +225,9 @@ registered = Frame(512, 424, 4)
 color_depth_map = np.zeros((424, 512), np.int32).ravel()
 bigdepth = Frame(1920, 1082, 4)
 np.set_printoptions(threshold=np.inf)
+
+def ssd_process():
+    pass
 while True:
     frames = listener.waitForNewFrame()
 
@@ -234,42 +240,22 @@ while True:
     if enable_rgb and enable_depth:
         registration.apply(color, depth, undistorted, registered, bigdepth=bigdepth,
                        color_depth_map=color_depth_map)
-    # elif enable_depth:
-    #     registration.undistortDepth(depth, undistorted)
-    # img = cv2.resize(registered.asarray(np.uint8)[:, :, 0:4], (512, 424))
-
-    #cv2.imshow("unrotated", img)
-
-    # bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920 / 3), int(1082 / 3))),3)
-    # img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920 / 3), int(1080 / 3))),3)
-    bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920/2), int(1082/2))),3)[418:,:]
-    img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920/2), int(1082/2))),3)[418:,:]
-
-    # bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920), int(1082))),3)
-    # img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920), int(1080))),3)
-
-    #cv2.imshow("bigdepth", bigdepth_img)
 
 
-    img = img.copy()
-    rclasses, rscores, rbboxes = process_image(img, select_threshold=min_select, nms_threshold=min_conf)
+    bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920/2), int(1082/2))),3)
+    img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920/2), int(1082/2))),3)
 
-    for bbox in rbboxes:
-        img.shape[0] ,
-    img, cropped_head_list = visualize_box(img, rclasses, rscores, rbboxes, bigdepth_img)
+    imghalves = [img[:542,:].copy(), img[418:,:].copy()]
+    resulthalves=[]
+    for img in imghalves:
 
-    cv2.imshow("color_img", img)
+        rclasses, rscores, rbboxes = process_image(img, select_threshold=min_select, nms_threshold=min_conf)
+        results, cropped_head_list = visualize_box(img, rclasses, rscores, rbboxes, bigdepth_img)
+        resulthalves.append(results)
 
-    # if enable_depth:
-    # cv2.imshow("ir", ir.asarray() / 65535.)
-    # cv2.imshow("depth", depth.asarray() / 4500.)
-    # cv2.imshow("color_depth_map", color_depth_map.reshape(424, 512))
-    # print(depth.asarray().shape)
-    # cv2.imshow("undistorted", undistorted.asarray(np.float32) / 4500.)
-    # if enable_rgb:
-    # cv2.imshow("color", img)
-    # if enable_rgb and enable_depth:
-    # cv2.imshow("registered", registered.asarray(np.uint8))
+
+    cv2.imshow("color_img", resulthalves[0])
+    cv2.imshow("bot", resulthalves[1])
 
     listener.release(frames)
 
