@@ -4,40 +4,35 @@
 import numpy as np
 import tensorflow as tf
 import cv2
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+
 import argparse
 import sys
-import os
-import math
-import random
-import imutils
-from deepgaze.head_pose_estimation import CnnHeadPoseEstimator
+
 from pylibfreenect2 import Freenect2, SyncMultiFrameListener
 from pylibfreenect2 import FrameType, Registration, Frame
 
 sys.path.append('/home/salil/Documents/SSD-Tensorflow/')
 from nets import ssd_vgg_512, ssd_common, np_methods
 from preprocessing import ssd_vgg_preprocessing
-from notebooks import visualization
+
 
 label_dict = {'none': 0,
-     'cup': 1,
-     'beer': 2,
-     'champagne': 3,
-     'deodorant' : 4,
-     'gum' : 5,
-     'hat' : 6,
-     'redwine' : 7,
-     'whitewine' : 8,
-     'batteries' : 9,
-     'altoids' : 10,
-     'dryspray' : 11,
-     'notebook' : 12,
-     'razor' : 13,
-     'shirt' : 14,
-     'can' : 15,
-     'pencils' : 16}
+     'mk_brown_wrislet': 1,
+     'lmk_brown_messenger_bag': 2,
+     'sm_peach_backpack': 3,
+     'nine_west_bag' : 4,
+     'wine_red_handbag' : 5,
+     'meixuan_brown_handbag' : 6,
+     'sm_bclarre_blush_crossbody' : 7,
+     'sm_bdrew_grey_handbag' : 8,
+     'white_bag' : 9,
+     'black_plain_bag' : 10,
+     'black_backpack' : 11,
+     'black_ameligalanti' : 12,
+     'ghost' : 13,
+     'ghost' : 14,
+     'ghost' : 15,
+}
 object_labels = {v: k for k, v in label_dict.items()}
 
 
@@ -87,9 +82,9 @@ with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
     predictions, localisations, _, _ = ssd_net.net(image_4d, is_training=False, reuse=reuse)
 
 # Restore SSD model.
-# ckpt_filename = '../checkpoints/ssd_300_vgg.ckpt'
+
 ckpt_filename = '/home/salil/Documents/SSD-Tensorflow/checkpoints/objects/obj_model.ckpt'
-# ckpt_filename = '../checkpoints/VGG_VOC0712_SSD_300x300_ft_iter_120000.ckpt'
+
 isess.run(tf.global_variables_initializer())
 saver = tf.train.Saver()
 saver.restore(isess, ckpt_filename)
@@ -153,15 +148,15 @@ def visualize_box(img, rclasses, rscores, rbboxes, depth_matrix):
             img = cv2.rectangle(img, topleft, botright, (0, 255, 0), 1)
 
             # print(rscores[ind])
-            img = cv2.putText(img, str(depth), (topleft[0], topleft[1]-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (155, 255, 55), 1,
+            img = cv2.putText(img, str(depth), (topleft[0], topleft[1]-20), cv2.FONT_HERSHEY_SIMPLEX, .5, (155, 255, 55), 1,
                                cv2.LINE_AA)
 
 
-            # img = cv2.putText(img, object_labels[rclasses[ind]], topleft, cv2.FONT_HERSHEY_SIMPLEX, .6, (255, 255, 255), 1,
-            #                   cv2.LINE_AA)
+            img = cv2.putText(img, object_labels[rclasses[ind]], topleft, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1,
+                              cv2.LINE_AA)
 
-            # img = cv2.putText(img, str(rscores[ind]), (topleft[0], botright[1] + 10), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1,
-            #                   cv2.LINE_AA)
+            img = cv2.putText(img, str(rscores[ind]), (topleft[0], botright[1] + 10), cv2.FONT_HERSHEY_SIMPLEX, .7, (255, 255, 255), 1,
+                               cv2.LINE_AA)
 
     return img, obj
 
@@ -198,7 +193,7 @@ if num_devices == 0:
     print("No device connected!")
     sys.exit(1)
 
-serial = fn.getDeviceSerialNumber(0)
+serial = fn.getDeviceSerialNumber(1)
 device = fn.openDevice(serial, pipeline=pipeline)
 
 types = 0
@@ -247,8 +242,8 @@ while True:
 
     # bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920 / 3), int(1082 / 3))),3)
     # img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920 / 3), int(1080 / 3))),3)
-    bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920/2), int(1082/2))),3)
-    img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920/2), int(1082/2))),3)
+    bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920/2), int(1082/2))),3)[418:,:]
+    img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920/2), int(1082/2))),3)[418:,:]
 
     # bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920), int(1082))),3)
     # img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920), int(1080))),3)

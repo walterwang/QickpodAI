@@ -9,8 +9,8 @@ import pandas as pd
 
 from pylibfreenect2 import createConsoleLogger, setGlobalLogger
 from transitions.extensions import GraphMachine as Machine
-
 setGlobalLogger(None)
+from camera_manager.queue_manager import QueueManager
 
 class Qickpod(object):
     states = ['s_occupied', 's_taken','s_returned', 's_empty', 's_atdoor']
@@ -37,8 +37,13 @@ class Qickpod(object):
         self.ssd_head = SSD('/home/salil/Documents/SSD-Tensorflow/checkpoints/model.ckpt', 21)
         # self.ssd_object  = SSD('/home/salil/Documents/SSD-Tensorflow/checkpoints/objects/obj_model.ckpt', 21)
 
-        self.left_kinect = KinectCamera(1)
-        self.right_kinect = KinectCamera(0)
+        #self.left_kinect = KinectCamera(1)
+        #self.right_kinect = KinectCamera(0)
+
+        self.m = QueueManager.create_manager()
+        self.m.connect()
+        self.right_kinect = self.m.LatestFrame1()
+        self.left_kinect = self.m.LatestFrame0()
 
         #defining pod fsm:
         self.machine = Machine(model=self, states=Qickpod.states, transitions=Qickpod.transitions,
@@ -84,8 +89,9 @@ class Qickpod(object):
 
     def check_heads(self, view ='all'):
 
-        rightimg,_= self.right_kinect.get_frames()
-        leftimg,_ = self.left_kinect.get_frames()
+        rightimg = self.right_kinect.get()
+        leftimg = self.left_kinect.get()
+
         if view == 'all':
             leftimg = np.rot90(leftimg, 2)
             img = np.hstack((rightimg, leftimg))
@@ -96,8 +102,10 @@ class Qickpod(object):
         if view == 'right':
             _, _, rcenters = self.ssd_head.get_objects(rightimg, select_threshold=.972)
             for head in rcenters:
-                if head[0]>220:
+                print('door_heads', head[0])
+                if head[0]>280:
                     door_heads = True
+
         # print("head centers", rcenters)
         return len(rcenters), door_heads
 

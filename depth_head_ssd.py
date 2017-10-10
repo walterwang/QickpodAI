@@ -278,8 +278,8 @@ if __name__ =='__main__':
 
         #cv2.imshow("unrotated", img)
 
-        bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920 / 3), int(1082 / 3))),3)
-        img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920 / 3), int(1080 / 3))),3)
+        bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920 / 3), int(1082 / 3))),1)
+        img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920 / 3), int(1080 / 3))),1)
 
         #cv2.imshow("bigdepth", bigdepth_img)
 
