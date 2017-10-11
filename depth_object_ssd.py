@@ -40,6 +40,13 @@ label_dict = {'none': 0,
      'ghost' : 13,
      'ghost' : 14,
      'ghost' : 15,
+    'ghost' : 16,
+    'ghost' : 17,
+    'ghost' : 18,
+    'ghost' : 19,
+    'ghost' : 20,
+    'ghost' : 21
+
 }
 object_labels = {v: k for k, v in label_dict.items()}
 
@@ -48,7 +55,7 @@ slim = tf.contrib.slim
 
 parser = argparse.ArgumentParser(description='Get min Confident lvl to display.')
 parser.add_argument('--c', type=float, help='minconfidence needed to display box', default=.25)
-parser.add_argument('--s', type=float, help='min select threshold needed to display box', default=.5)
+parser.add_argument('--s', type=float, help='min select threshold needed to display box', default=.6)
 parser.add_argument('--a', type=int, help='minmum_area', default=1)
 args = parser.parse_args()
 min_conf = args.c

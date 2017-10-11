@@ -104,7 +104,7 @@ class KinectCamera(object):
 if __name__ == '__main__':
     # fourcc = cv2.VideoWriter_fourcc(*'XVID')
     # out = cv2.VideoWriter('object_no_light.avi', fourcc, 30.0, (int(1080/3), int(1920 / 3)))
-    kinect_right=  KinectCamera(1)
+    #kinect_right=  KinectCamera(1)
     kinect_left = KinectCamera(0)
     counter = 0
 
@@ -113,31 +113,37 @@ if __name__ == '__main__':
         #out.write(np.fliplr(kinect_left.get_frames()[0]))
         time.sleep(1)
         left = kinect_left.get_frames()[0]
-        right = kinect_right.get_frames()[0]
-
-
-        if counter%5== 0:
-            cv2.imwrite('dual_left_'+str(counter//5)+'.png', left)
-            cv2.imwrite('dual_right_' + str(counter//5)+'.png', right)
-
-
+        #right = kinect_right.get_frames()[0]
         left = left.copy()
+        left = cv2.resize(np.rot90(left,3), (int(1080/2), int(1920/2)))
+        imghalves = [left[:542, :].copy(), left[418:, :].copy()]
+        if counter%30== 0:
+            cv2.imwrite('top' + str(counter // 5) + '.png', imghalves[0])
+            cv2.imwrite('bot' + str(counter // 5) + '.png', imghalves[1])
+
+            # cv2.imwrite('dual_left_'+str(counter//5)+'.png', left)
+            # cv2.imwrite('dual_right_' + str(counter//5)+'.png', right)
+
+
+
 
         left = cv2.putText(left, str(counter), (int(105), int(155)), cv2.FONT_HERSHEY_SIMPLEX, 6, (155, 255, 55), 10, cv2.LINE_AA)
 
-        left = cv2.resize(np.rot90(left,1), (int(1080/2), int(1920/2)))
 
-        right = right.copy()
-        right = cv2.resize(np.rot90(right,1), (int(1080/2), int(1920/2)))
 
+        #right = right.copy()
+        #right = cv2.resize(np.rot90(right,1), (int(1080/2), int(1920/2)))
+        #
+        # cv2.imshow('top', imghalves[0])
+        # cv2.imshow('bot', imghalves[1])
         cv2.imshow('left', left)
-        cv2.imshow('right', right)
+        #cv2.imshow('right', right)
 
 
 
         key = cv2.waitKey(delay=1)
         if key == ord('q'):
-            kinect_right.__del__()
+            #kinect_right.__del__()
             kinect_left.__del__()
             break
 

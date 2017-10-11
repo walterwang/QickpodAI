@@ -36,11 +36,12 @@ class Qickpod(object):
         self.inventorylist = pd.read_csv(ssd_path[2].strip())
         self.upcname_dict = pd.Series(self.inventorylist.UPC.values, index=self.inventorylist.productname).to_dict()
         self.poditems = []
-        # self.ssd_head = SSD('/home/salil/Documents/SSD-Tensorflow/checkpoints/model.ckpt', 21)
         self.ssd_object  = SSD(ssd_path[1].strip(), 21)
 
-        self.left_kinect = KinectCamera(1)
+        # self.left_kinect = KinectCamera(1)
         self.right_kinect = KinectCamera(0)
+        self.set_template('door')
+        self.set_template('pod')
 
         #self.m = QueueManager.create_manager()
         #self.m.connect()
@@ -57,10 +58,14 @@ class Qickpod(object):
         self.machine.on_enter_s_empty('onenter_empty')
         self.machine.on_enter_s_atdoor('onenter_atdoor')
 
+    def set_template(self, area):
+        if area == 'door':
+            pass
+        if area == 'pod':
+            pass
     def onenter_empty(self):
         while True:
             time.sleep(.5)
-
             heads, isdoorhead =self.check_heads(view='right')
             print("empty state:", isdoorhead, heads)
             if isdoorhead:
@@ -88,17 +93,18 @@ class Qickpod(object):
         print('error returning to onenterdoor')
         return self.t_atdoor2atdoor()
 
+    def location_matching(self):
+        pass
 
     def check_heads(self, view ='all'):
 
-        rightimg = self.right_kinect.get()
-        leftimg = self.left_kinect.get()
+        rightimg = self.right_kinect.get_frames()
+
 
         if view == 'all':
-            leftimg = np.rot90(leftimg, 2)
-            img = np.hstack((rightimg, leftimg))
-            img = img.copy()
-            _, _, rcenters = self.ssd_head.get_objects(img, select_threshold =.98)
+            leftimg = np.rot90(rightimg, 2)
+
+            self.location_matching()
 
         door_heads = False
         if view == 'right':
