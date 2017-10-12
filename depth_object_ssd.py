@@ -54,7 +54,7 @@ object_labels = {v: k for k, v in label_dict.items()}
 slim = tf.contrib.slim
 
 parser = argparse.ArgumentParser(description='Get min Confident lvl to display.')
-parser.add_argument('--c', type=float, help='minconfidence needed to display box', default=.25)
+parser.add_argument('--c', type=float, help='minconfidence needed to display box', default=.05)
 parser.add_argument('--s', type=float, help='min select threshold needed to display box', default=.6)
 parser.add_argument('--a', type=int, help='minmum_area', default=1)
 args = parser.parse_args()
@@ -203,7 +203,7 @@ if num_devices == 0:
     print("No device connected!")
     sys.exit(1)
 
-serial = fn.getDeviceSerialNumber(0)
+serial = fn.getDeviceSerialNumber(1)
 device = fn.openDevice(serial, pipeline=pipeline)
 
 types = 0

@@ -26,7 +26,26 @@ class Qickpod(object):
                    ['t_returned2occupied', 's_returned', 's_occupied'],
                    ['t_taken2occupied', 's_taken', 's_occupied'],]
 
-    def __init__(self):
+    def __init__(self, raw_img=True):
+        if raw_img:
+            self.raw_kinect_im =True
+            self.left_kinect = KinectCamera(1)
+            self.right_kinect = KinectCamera(0)
+
+            rightimg = self.right_kinect.get_frames()[0]
+            rightimg = np.rot90(cv2.resize(rightimg, (rightimg.shape[1]//2, rightimg.shape[0]//2)),1)
+            self.set_template(rightimg, 'door')
+            self.set_template(rightimg, 'pod')
+
+
+        else:
+            print("Zeleng's queue manager not implemented")
+            sys.exit(0)
+            # self.m = QueueManager.create_manager()
+            # self.m.connect()
+            # self.right_kinect = self.m.LatestFrame1()
+            # self.left_kinect = self.m.LatestFrame0()
+            pass
 
         # defining pod variables and camera
         with open("ssd_path.txt") as f:
@@ -38,16 +57,6 @@ class Qickpod(object):
         self.poditems = []
         self.ssd_object  = SSD(ssd_path[1].strip(), 21)
 
-        # self.left_kinect = KinectCamera(1)
-        self.right_kinect = KinectCamera(0)
-        self.set_template('door')
-        self.set_template('pod')
-
-        #self.m = QueueManager.create_manager()
-        #self.m.connect()
-        #self.right_kinect = self.m.LatestFrame1()
-        #self.left_kinect = self.m.LatestFrame0()
-
         #defining pod fsm:
         self.machine = Machine(model=self, states=Qickpod.states, transitions=Qickpod.transitions,
                                initial='s_occupied', queued=True)
@@ -58,19 +67,31 @@ class Qickpod(object):
         self.machine.on_enter_s_empty('onenter_empty')
         self.machine.on_enter_s_atdoor('onenter_atdoor')
 
-    def set_template(self, area):
+    def construct_inventory(self):
+
+        pass
+    def set_template(self, img, area):
         if area == 'door':
-            pass
+            self.doortemplate = self.get_area(img, 'door')
         if area == 'pod':
-            pass
+            self.podtemplate = self.get_area(img, 'pod')
+
+    def get_area(self, img, area):
+        if area == 'door':
+            img_area = img[635:, 0:30]
+            return img_area
+        if area == 'pod':
+            img_area = img[635:, 0:166]
+            return img_area
+
     def onenter_empty(self):
         while True:
             time.sleep(.5)
-            heads, isdoorhead =self.check_heads(view='right')
-            print("empty state:", isdoorhead, heads)
+            isoccupied, isdoorhead =self.check_heads()
+            print("empty state:", isdoorhead, isoccupied)
             if isdoorhead:
                 return self.t_empty2atdoor()
-            if heads>0:
+            if isoccupied>0:
                 print('head found')
                 return self.t_empty2occupied()
 
@@ -81,46 +102,48 @@ class Qickpod(object):
                 return self.t_occupied2empty()
 
     def onenter_atdoor(self):
-        heads, isdoorhead = self.check_heads(view = 'right')
-        if isdoorhead:
+        isoccupied, isatdoor = self.check_heads()
+        if isatdoor:
             time.sleep(.3)
             return self.t_atdoor2atdoor()
-        elif heads>0:
-            print('from atdoor to occupied, ', heads, isdoorhead)
+        elif isoccupied:
+            print('from atdoor to occupied, ')
             return self.t_atdoor2occupied()
         else:
             return self.t_atdoor2empty()
         print('error returning to onenterdoor')
         return self.t_atdoor2atdoor()
 
-    def location_matching(self):
-        pass
+    def check_heads(self):
 
-    def check_heads(self, view ='all'):
+        if self.raw_kinect_im:
+            rightimg = self.right_kinect.get_frames()[0]
+            rightimg = np.rot90(cv2.resize(rightimg, (rightimg.shape[1]//2, rightimg.shape[0]//2)),1)
+            podimg = self.get_area(rightimg, 'pod')
+            doorimg = self.get_area(rightimg, 'door')
 
-        rightimg = self.right_kinect.get_frames()
+        else:
+            # use Zeleng's half sized images
+            pass
+        isoccupied, isatdoor = False, False
 
-
-        if view == 'all':
-            leftimg = np.rot90(rightimg, 2)
-
-            self.location_matching()
-
-        door_heads = False
-        if view == 'right':
-            _, _, rcenters = self.ssd_head.get_objects(rightimg, select_threshold=.972)
-            for head in rcenters:
-                print('door_heads', head[0])
-                if head[0]>280:
-                    door_heads = True
-
-        # print("head centers", rcenters)
-        return len(rcenters), door_heads
+        # check to see if doorimg match with doorimg.template()
+        res = cv2.matchTemplate(podimg, self.podtemplate, cv2.TM_CCOEFF_NORMED)
+        _, matchscore, _, _ = cv2.minMaxLoc(res)
+        if matchscore < .8:
+            isoccupied = True
+        print('maxval', matchscore)
+        res = cv2.matchTemplate(doorimg, self.doortemplate, cv2.TM_CCOEFF_NORMED)
+        _, matchscore, _, _ = cv2.minMaxLoc(res)
+        if matchscore < .8:
+            isatdoor = True
+        print('res dooronly', matchscore)
+        return isoccupied, isatdoor
 
     def check_empty(self):
         for i in range(3):
             time.sleep(.5)
-            if self.check_heads()[0] > 0:
+            if self.check_heads()[0]:
                 return False
         return True
 

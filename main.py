@@ -34,7 +34,7 @@ def show_graph():
             break
 
 if __name__ == '__main__':
-    demoai = Qickpod()
+    demoai = Qickpod(raw_img=False)
     Thread(target=demoai.t_occupied2empty).start()
     Thread(target=show_graph).start()
     Thread(app.run(port=port).start())
