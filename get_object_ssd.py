@@ -6,10 +6,8 @@ import tensorflow as tf
 import cv2
 import argparse
 import sys
-from pylibfreenect2 import Freenect2, SyncMultiFrameListener
-from pylibfreenect2 import FrameType, Registration, Frame
 
-with open("ssd_path.txt") as f:
+with open("/home/salil/QickpodAI/ssd_path.txt") as f:
     ssd_path=f.readlines()
 sys.path.append(ssd_path[0].strip())
 
@@ -21,11 +19,11 @@ label_dict = {'none': 0,
      'mk_brown_wrislet': 1,
      'LMK Messenger Tote Bags 285': 2,
      'sm_peach_backpack': 3,
-     'nine_west_bag' : 4,
-     'wine_red_handbag' : 5,
+     'Nine West Reana' : 4,
+     'Pahajim women handbag (wine red)' : 5,
      'meixuan_brown_handbag' : 6,
      'sm_bclarre_blush_crossbody' : 7,
-     'sm_bdrew_grey_handbag' : 8,
+     'Steve madden Bdrew Grey Kolt Updated' : 8,
      'Handbag (white)' : 9,
      'black_plain_bag' : 10,
      'black_backpack' : 11,
@@ -47,32 +45,20 @@ object_labels = {v: k for k, v in label_dict.items()}
 slim = tf.contrib.slim
 
 parser = argparse.ArgumentParser(description='Get min Confident lvl to display.')
-parser.add_argument('--c', type=float, help='minconfidence needed to display box', default=.01)
-parser.add_argument('--s', type=float, help='min select threshold needed to display box', default=.9)
+parser.add_argument('--c', type=float, help='minconfidence needed to display box', default=0)
+parser.add_argument('--s', type=float, help='min select threshold needed to display box', default=.3)
 parser.add_argument('--a', type=int, help='minmum_area', default=1)
 args = parser.parse_args()
 min_conf = args.c
 min_select = args.s
 min_area = args.a
 
-# In[5]:
-
-
-
-# In[6]:
 
 # TensorFlow session: grow memory when needed. TF, DO NOT USE ALL MY GPU MEMORY!!!
 gpu_options = tf.GPUOptions(allow_growth=True)
 config = tf.ConfigProto(log_device_placement=False, gpu_options=gpu_options)
 isess = tf.Session(config=config)
 
-# ## SSD 300 Model
-#
-# The SSD 300 network takes 300x300 image inputs. In order to feed any image, the latter is resize to this input shape (i.e.`Resize.WARP_RESIZE`). Note that even though it may change the ratio width / height, the SSD model performs well on resized images (and it is the default behaviour in the original Caffe implementation).
-#
-# SSD anchors correspond to the default bounding boxes encoded in the network. The SSD net output provides offset on the coordinates and dimensions of these anchors.
-
-# In[7]:
 
 # Input placeholder.
 net_shape = (512, 512)
@@ -91,7 +77,6 @@ with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
 
 # Restore SSD model.
 
-# ckpt_filename = '/home/walter/Documents/others_git/SSD-Tensorflow/checkpoints/handbags/obj_model.ckpt'
 ckpt_filename = ssd_path[1].strip()
 
 isess.run(tf.global_variables_initializer())
@@ -102,20 +87,9 @@ saver.restore(isess, ckpt_filename)
 ssd_anchors = ssd_net.anchors(net_shape)
 
 
-# ## Post-processing pipeline
-#
-# The SSD outputs need to be post-processed to provide proper detections. Namely, we follow these common steps:
-#
-# * Select boxes above a classification threshold;
-# * Clip boxes to the image shape;
-# * Apply the Non-Maximum-Selection algorithm: fuse together boxes whose Jaccard score > threshold;
-# * If necessary, resize bounding boxes to original image shape.
 
-# In[8]:
 
-# Main image processing routine.
-
-def process_image(img, select_threshold=0.98, nms_threshold=0, net_shape=(512, 512)):
+def process_image(img, select_threshold=0.5, nms_threshold=0, net_shape=(512, 512)):
     # Run SSD network.
     rimg, rpredictions, rlocalisations, rbbox_img = isess.run([image_4d, predictions, localisations, bbox_img],
                                                               feed_dict={img_input: img})
@@ -180,98 +154,87 @@ def visualize_box(img, rclasses, rscores, rbboxes, depth_matrix):
     return img, obj
 
 
-# fourcc = cv2.VideoWriter_fourcc(*'XVID')
-# out = cv2.VideoWriter('head_demo.avi', fourcc, 12.0, (640, 480))
-
 sess = tf.Session()
 
-count = 0
-x_axis_rotate = 0
 
-try:
-    from pylibfreenect2 import OpenCLPacketPipeline
+def is_overlapping(obj1, obj2):
+    overlap_area = 0
+    small_area = obj2[2] * obj2[3]
 
-    pipeline = OpenCLPacketPipeline()
-except:
-    try:
-        from pylibfreenect2 import OpenGLPacketPipeline
+    obj1 = obj1[:]
+    obj1[2] = obj1[0] + obj1[2]
+    obj1[3] = obj1[1] + obj1[3]
+    obj2 = obj2[:]
+    obj2[2] = obj2[0] + obj2[2]
+    obj2[3] = obj2[1] + obj2[3]
 
-        pipeline = OpenGLPacketPipeline()
-    except:
-        from pylibfreenect2 import CpuPacketPipeline
+    dx = min(obj1[2], obj2[2]) - max(obj1[0], obj2[0])
+    dy = min(obj1[3], obj2[3]) - max(obj1[1], obj2[1])
+    if (dx >= 0) and (dy >= 0):
+        overlap_area = dx * dy
 
-        pipeline = CpuPacketPipeline()
-print("Packet pipeline:", type(pipeline).__name__)
-
-enable_rgb = True
-enable_depth = True
-
-fn = Freenect2()
-num_devices = fn.enumerateDevices()
-if num_devices == 0:
-    print("No device connected!")
-    sys.exit(1)
-
-serial = fn.getDeviceSerialNumber(0)
-device = fn.openDevice(serial, pipeline=pipeline)
-
-types = 0
-if enable_rgb:
-    types |= FrameType.Color
-if enable_depth:
-    types |= (FrameType.Ir | FrameType.Depth)
-listener = SyncMultiFrameListener(types)
-
-# Register listeners
-device.setColorFrameListener(listener)
-device.setIrAndDepthFrameListener(listener)
-
-if enable_rgb and enable_depth:
-    device.start()
-else:
-    device.startStreams(rgb=enable_rgb, depth=enable_depth)
-
-# NOTE: must be called after device.start()
-if enable_depth:
-    registration = Registration(device.getIrCameraParams(),
-                                device.getColorCameraParams())
-
-undistorted = Frame(512, 424, 4)
-registered = Frame(512, 424, 4)
-color_depth_map = np.zeros((424, 512), np.int32).ravel()
-bigdepth = Frame(1920, 1082, 4)
-np.set_printoptions(threshold=np.inf)
+    if overlap_area / small_area > 0.5:
+        return True
+    else:
+        return False
 
 
+def remove_overlapping_objects(objects):
+    # Create a graph whose edge represent the two nodes overlap
+    selected_objects = []
+    overlap_graph = dict()
+    for i in range(len(objects)):
+        overlap_graph[i] = []
 
-def ssd_process():
-    pass
-while True:
-    frames = listener.waitForNewFrame()
+    # Iterate through pairs of hands
+    for i in range(len(objects)):
+        for j in range(i + 1, len(objects)):
+            area_i = objects[i][2] * objects[i][3]
+            area_j = objects[j][2] * objects[j][3]
+            if area_i > area_j and is_overlapping(objects[i], objects[j]) is True:
+                overlap_graph[i].append(j)
+                overlap_graph[j].append(i)
+            elif area_i < area_j and is_overlapping(objects[j], objects[i]) is True:
+                overlap_graph[i].append(j)
+                overlap_graph[j].append(i)
 
-    if enable_rgb:
-        color = frames["color"]
-    if enable_depth:
-        ir = frames["ir"]
-        depth = frames["depth"]
-
-    if enable_rgb and enable_depth:
-        registration.apply(color, depth, undistorted, registered, bigdepth=bigdepth,
-                       color_depth_map=color_depth_map)
-
-
-    bigdepth_img = np.rot90(cv2.resize(bigdepth.asarray(np.float32), (int(1920/2), int(1082/2))),3)
-    img = np.rot90(cv2.resize(color.asarray()[:, :, 0:3], (int(1920/2), int(1082/2))),3)
+    # Among overlapping objects, get the object with highest confidence
+    removed_boxes = []
+    for i in range(len(objects)):
+        confidence = objects[i][4]
+        lost = 0
+        for j in overlap_graph[i]:
+            if confidence < objects[j][4]:
+                lost = 1
+        if lost == 1:
+            removed_boxes.append(i)
+    return removed_boxes
 
 
+def get_bboxes(shape, classes, scores, bboxes):
+    objects = []
 
+    for i in range(len(bboxes)):
+        obj = [0, 0, 0, 0, 0, 0]
+        bbox = bboxes[i]
+        p1 = (int(bbox[0] * shape[0]), int(bbox[1] * shape[1]))
+        p2 = (int(bbox[2] * shape[0]), int(bbox[3] * shape[1]))
+        obj[1], obj[0] = p1[0], p1[1]
+        obj[3], obj[2] = p2[0] - p1[0], p2[1] - p1[1]
+        obj[4] = scores[i]
+        obj[5] = classes[i]
+        objects.append(obj)
+
+    return objects
+
+def get_objects(img, bigdepth_img):
 
     imghalves = [img[:542,:].copy(), img[418:,:].copy()]
     imgdepths = [bigdepth_img[:542, :].copy(), bigdepth_img[418:, :].copy()]
 
-    rclasses, rscores, rbboxes = process_image(imghalves[0], select_threshold=0.8)
+    rclasses, rscores, rbboxes = process_image(imghalves[0], select_threshold=0.85)
 
-    rclasses1, rscores1, rbboxes1 = process_image(imghalves[1], select_threshold=0.8)
+    rclasses1, rscores1, rbboxes1 = process_image(imghalves[1], select_threshold=0.85)
 
     rbboxes = rbboxes.tolist()
     rclasses = rclasses.tolist()
@@ -283,11 +246,13 @@ while True:
     final_obj =[]
     final_rclasses=[]
     final_rscores = []
+    final_rnames = []
     for m, obj in enumerate(rbboxes):
         if obj[0]<460:
             final_obj.append(obj)
             final_rclasses.append(rclasses[m])
             final_rscores.append(rscores[m])
+            final_rnames.append(object_labels[rclasses[m]])
 
     for i, obj in enumerate(rbboxes1):
         if obj[0] > 10:
@@ -296,20 +261,53 @@ while True:
             final_obj.append(obj)
             final_rclasses.append(rclasses1[i])
             final_rscores.append(rscores1[i])
-
+            final_rnames.append(object_labels[rclasses1[i]])
 
     img =img.copy()
-    objects, _ = visualize_box(img, final_rclasses, final_rscores, final_obj, bigdepth_img)
-    cv2.imshow("color_img", img)
+    objects = get_bboxes(img.shape, final_rclasses, final_rscores, final_obj)
+    removed_boxes = remove_overlapping_objects(objects)
+    for i in reversed(removed_boxes):
+        final_obj.pop(i)
+        final_rclasses.pop(i)
+        final_rscores.pop(i)
+        final_rnames.pop(i)
+
+    return final_obj, final_rclasses, final_rscores, final_rnames
 
 
-    listener.release(frames)
+if __name__ == "__main__":
+    from utils.camera.kinect import KinectCamera
+    #
+    # kinect_right=  KinectCamera(1)
+    kinect_left = KinectCamera(0)
+    prev_rnames = []
 
-    key = cv2.waitKey(delay=1)
-    if key == ord('q'):
-        break
+    while True:
 
-device.stop()
-device.close()
+        leftimg, left_depth = kinect_left.get_frames()
+        #rightimg, right_depth = kinect_right.get_frames()
 
-sys.exit(0)
+        dimg = np.rot90(cv2.resize(left_depth, (int(1920 / 2), int(1082 / 2))), 3)
+        img = np.rot90(cv2.resize(leftimg, (int(1920 / 2), int(1082 / 2))), 3)
+
+
+        final_obj, final_rclasses, final_rscores, final_rnames = get_objects(img, dimg)
+        objects_taken = set(prev_rnames) ^ set(final_rnames)
+        prev_rnames=final_rnames
+        print(objects_taken)
+        # if 'meixuan_brown_handbag' in final_rnames:
+        #     print("mexuian found")
+        # else:
+        #     print('not found')
+
+
+
+        img = img.copy()
+        _, _ = visualize_box(img, final_rclasses, final_rscores, final_obj, dimg)
+        cv2.imshow("color_img", img)
+
+
+
+        key = cv2.waitKey(delay=1)
+        if key == ord('q'):
+            break

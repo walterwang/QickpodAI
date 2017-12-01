@@ -87,6 +87,7 @@ retval, cameraMatrix1, distCoeffs1, cameraMatrix2, distCoeffs2, R, T, E, F = cv2
                                                                                                  E,
                                                                                                  F)
 print(R,T)
+#print('intrisinc left, right', l[0], r[0])
 rotation_vectors_left = l[2]
 rotation_vectors_right = r[2]
 
